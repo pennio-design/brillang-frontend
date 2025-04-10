@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Brillá.ng Dashboard</title>
+</head>
+<body>
+  <h2>📅 Brillá.ng Reminder System</h2>
+  <button onclick="sendReminder()">Send Tomorrow’s Reminder</button>
+  <p id="status"></p>
+
+  <script>
+    async function sendReminder() {
+      document.getElementById("status").innerText = "Sending...";
+      try {
+        const res = await fetch("https://brillang-backend.onrender.com/send-reminder");
+        const data = await res.json();
+        document.getElementById("status").innerText = data.message || data.error;
+      } catch (err) {
+        document.getElementById("status").innerText = "Error sending reminder.";
+      }
+    }
+  </script>
+</body>
+</html>
