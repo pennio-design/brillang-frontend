@@ -1,24 +1,93 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Brillá.ng Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brillá.ng Reminder System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f7f6;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 30px;
+      width: 300px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      font-size: 24px;
+      color: #2d2d2d;
+      margin-bottom: 20px;
+    }
+    .reminder-btn {
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .reminder-btn:hover {
+      background-color: #218838;
+    }
+    .status-message {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .status-message.success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status-message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
 </head>
 <body>
-  <h2>📅 Brillá.ng Reminder System</h2>
-  <button onclick="sendReminder()">Send Tomorrow’s Reminder</button>
-  <p id="status"></p>
+  <div class="container">
+    <h1>Brillá.ng Reminder System</h1>
+    <button class="reminder-btn" id="sendReminderBtn">Send Tomorrow’s Reminder</button>
+    <div id="statusContainer" class="status-message" style="display: none;"></div>
+  </div>
 
   <script>
-    async function sendReminder() {
-      document.getElementById("status").innerText = "Sending...";
-      try {
-        const res = await fetch("https://brillang-backend.onrender.com/send-reminder");
-        const data = await res.json();
-        document.getElementById("status").innerText = data.message || data.error;
-      } catch (err) {
-        document.getElementById("status").innerText = "Error sending reminder.";
-      }
-    }
+    document.getElementById('sendReminderBtn').addEventListener('click', () => {
+      fetch('/send-reminder')
+        .then(response => response.json())
+        .then(data => {
+          const statusContainer = document.getElementById('statusContainer');
+          if (data.status === 'success') {
+            statusContainer.classList.remove('error');
+            statusContainer.classList.add('success');
+            statusContainer.textContent = data.message;
+          } else {
+            statusContainer.classList.remove('success');
+            statusContainer.classList.add('error');
+            statusContainer.textContent = data.message;
+          }
+          statusContainer.style.display = 'block';
+        })
+        .catch(() => {
+          const statusContainer = document.getElementById('statusContainer');
+          statusContainer.classList.remove('success');
+          statusContainer.classList.add('error');
+          statusContainer.textContent = 'An unexpected error occurred.';
+          statusContainer.style.display = 'block';
+        });
+    });
   </script>
 </body>
 </html>

@@ -46,7 +46,7 @@ def send_reminder():
     except Exception as e:
         error_trace = traceback.format_exc()
         print("❌ Notion API error:\n", error_trace)
-        return {"status": "error", "message": "Failed to query Notion", "trace": error_trace}
+        return {"status": "error", "message": "Failed to query Notion database", "trace": error_trace}
 
     # If there are posts scheduled for tomorrow
     if posts:
