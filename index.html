@@ -67,7 +67,7 @@
 
   <script>
     document.getElementById('sendReminderBtn').addEventListener('click', () => {
-      fetch('/send-reminder')
+        fetch('https://brillang-backend.onrender.com/send-reminder')
         .then(response => response.json())
         .then(data => {
           const statusContainer = document.getElementById('statusContainer');

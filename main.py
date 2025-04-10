@@ -9,6 +9,17 @@ from email.mime.text import MIMEText
 import traceback
 
 app = FastAPI()
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or set to ["http://localhost:8000"] for stricter security
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 load_dotenv()
 
 NOTION_TOKEN = os.getenv("NOTION_TOKEN")
