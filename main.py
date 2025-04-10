@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from notion_client import Client
 import os
 from dotenv import load_dotenv
@@ -19,8 +19,10 @@ RECIPIENTS = ["patescool@gmail.com", "pauloyatowo@gmail.com", "brilla.co.ng@gmai
 
 notion = Client(auth=NOTION_TOKEN)
 
-@app.get("/")
-def read_root():
+@app.api_route("/", methods=["GET", "HEAD"])
+async def root(request: Request):
+    if request.method == "HEAD":
+        return {"message": "Brillá.ng Reminder Service is live ✨"}
     return {"message": "Brillá.ng Reminder Service is live ✨"}
 
 @app.get("/send-reminder")
