@@ -82,7 +82,8 @@
           }
           statusContainer.style.display = 'block';
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error("Error occurred:", error);
           const statusContainer = document.getElementById('statusContainer');
           statusContainer.classList.remove('success');
           statusContainer.classList.add('error');
