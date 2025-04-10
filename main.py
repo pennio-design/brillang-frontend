@@ -1,12 +1,13 @@
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+# main.py
+
 import os
 from datetime import datetime, timedelta
+from fastapi import FastAPI
 from notion_client import Client
+from dotenv import load_dotenv
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -16,27 +17,37 @@ NOTION_TOKEN = os.getenv("NOTION_TOKEN")
 DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
 APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
-RECIPIENTS = ["patescool@gmail.com", "pauloyatowo@gmail.com", "brilla.co.ng@gmail.com"]
+RECIPIENTS = [
+    "patescool@gmail.com",
+    "pauloyatowo@gmail.com",
+    "brilla.co.ng@gmail.com"
+]
 
 notion = Client(auth=NOTION_TOKEN)
 
-def get_tomorrow_posts():
+@app.get("/")
+def read_root():
+    return {"message": "Brillá.ng content reminder API is live 🚀"}
+
+@app.get("/send-reminder")
+def send_reminder():
     today = datetime.today().date()
     tomorrow = today + timedelta(days=1)
+
     response = notion.databases.query(
         **{
             "database_id": DATABASE_ID,
             "filter": {
                 "property": "Scheduled Date",
-                "date": {"equals": tomorrow.isoformat()}
+                "date": {
+                    "equals": tomorrow.isoformat()
+                }
             }
         }
     )
-    return response["results"]
 
-@app.get("/send-reminder")
-def send_reminder():
-    posts = get_tomorrow_posts()
+    posts = response["results"]
+
     if posts:
         content = ""
         for post in posts:
@@ -45,7 +56,11 @@ def send_reminder():
             scheduled = props["Scheduled Date"]["date"]["start"]
             fmt = props["Format"]["select"]["name"]
             platform = props["Platform"]["select"]["name"]
-            audience = props["Target Audience"]["rich_text"][0]["plain_text"] if props["Target Audience"]["rich_text"] else "TBD"
+            audience = (
+                props["Target Audience"]["rich_text"][0]["plain_text"]
+                if props["Target Audience"]["rich_text"]
+                else "TBD"
+            )
 
             content += (
                 f"🧼 <b>Campaign:</b> {title}<br>"
@@ -66,6 +81,6 @@ def send_reminder():
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(SENDER_EMAIL, APP_PASSWORD)
             server.sendmail(SENDER_EMAIL, RECIPIENTS, msg.as_string())
-        return JSONResponse(content={"message": "✅ Reminder sent."}, status_code=200)
+        return {"status": "success", "message": "Reminder email sent successfully."}
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        return {"status": "error", "message": str(e)}
