@@ -26,16 +26,18 @@ def read_root():
 @app.get("/send-reminder")
 def send_reminder():
     try:
+        # Get today's and tomorrow's date
         today = datetime.today().date()
         tomorrow = today + timedelta(days=1)
 
+        # Query the Notion database for posts scheduled for tomorrow
         response = notion.databases.query(
             **{
                 "database_id": DATABASE_ID,
                 "filter": {
                     "property": "Scheduled Date",
                     "date": {
-                        "equals": tomorrow.isoformat()
+                        "equals": tomorrow.isoformat()  # Use ISO format for date comparison
                     }
                 }
             }
@@ -46,6 +48,7 @@ def send_reminder():
         print("❌ Notion API error:\n", error_trace)
         return {"status": "error", "message": "Failed to query Notion", "trace": error_trace}
 
+    # If there are posts scheduled for tomorrow
     if posts:
         content = ""
         for post in posts:
@@ -69,13 +72,14 @@ def send_reminder():
     else:
         content = "✅ No posts scheduled for tomorrow. Rest easy or prep ahead!"
 
-    # Prepare email
+    # Prepare the email content
     msg = MIMEMultipart("alternative")
     msg["From"] = SENDER_EMAIL
     msg["To"] = ", ".join(RECIPIENTS)
     msg["Subject"] = "🌟 Brillá.ng Content Reminder — What’s Up for Tomorrow?"
     msg.attach(MIMEText(content, "html"))
 
+    # Send the reminder email
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(SENDER_EMAIL, APP_PASSWORD)
