@@ -1,52 +1,50 @@
-# main.py
-
-import os
-from datetime import datetime, timedelta
 from fastapi import FastAPI
 from notion_client import Client
+import os
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
-load_dotenv()
+import traceback
 
 app = FastAPI()
+load_dotenv()
 
 NOTION_TOKEN = os.getenv("NOTION_TOKEN")
 DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
 APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
-RECIPIENTS = [
-    "patescool@gmail.com",
-    "pauloyatowo@gmail.com",
-    "brilla.co.ng@gmail.com"
-]
+RECIPIENTS = ["patescool@gmail.com", "pauloyatowo@gmail.com", "brilla.co.ng@gmail.com"]
 
 notion = Client(auth=NOTION_TOKEN)
 
 @app.get("/")
 def read_root():
-    return {"message": "Brillá.ng content reminder API is live 🚀"}
+    return {"message": "Brillá.ng Reminder Service is live ✨"}
 
 @app.get("/send-reminder")
 def send_reminder():
-    today = datetime.today().date()
-    tomorrow = today + timedelta(days=1)
+    try:
+        today = datetime.today().date()
+        tomorrow = today + timedelta(days=1)
 
-    response = notion.databases.query(
-        **{
-            "database_id": DATABASE_ID,
-            "filter": {
-                "property": "Scheduled Date",
-                "date": {
-                    "equals": tomorrow.isoformat()
+        response = notion.databases.query(
+            **{
+                "database_id": DATABASE_ID,
+                "filter": {
+                    "property": "Scheduled Date",
+                    "date": {
+                        "equals": tomorrow.isoformat()
+                    }
                 }
             }
-        }
-    )
-
-    posts = response["results"]
+        )
+        posts = response["results"]
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        print("❌ Notion API error:\n", error_trace)
+        return {"status": "error", "message": "Failed to query Notion", "trace": error_trace}
 
     if posts:
         content = ""
@@ -71,6 +69,7 @@ def send_reminder():
     else:
         content = "✅ No posts scheduled for tomorrow. Rest easy or prep ahead!"
 
+    # Prepare email
     msg = MIMEMultipart("alternative")
     msg["From"] = SENDER_EMAIL
     msg["To"] = ", ".join(RECIPIENTS)
@@ -83,4 +82,6 @@ def send_reminder():
             server.sendmail(SENDER_EMAIL, RECIPIENTS, msg.as_string())
         return {"status": "success", "message": "Reminder email sent successfully."}
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        error_trace = traceback.format_exc()
+        print("❌ Email sending error:\n", error_trace)
+        return {"status": "error", "message": "Failed to send email", "trace": error_trace}
