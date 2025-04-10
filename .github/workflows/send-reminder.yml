@@ -1,0 +1,14 @@
+name: Send Brillá.ng Reminder
+
+on:
+  schedule:
+    - cron: '0 7 * * *'  # Runs every day at 7 AM UTC (adjust as needed)
+  workflow_dispatch:  # Allows manual triggering from GitHub Actions tab
+
+jobs:
+  send-reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /send-reminder endpoint
+        run: |
+          curl -X GET https://brillang-backend.onrender.com/send-reminder
